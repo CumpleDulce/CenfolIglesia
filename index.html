@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministerio de Alabanza</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Ministerio de Alabanza</h1>
+            <p>Iglesia Cenfol</p>
+        </div>
+    </header>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html">Inicio</a>
+            <a href="acordes.html">Acordes</a>
+            <a href="calendario.html">Calendario</a>
+            <a href="#contacto">Contacto</a>
+            <a href="youtube.html">Pistas</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="recursos" class="section">
+            <h2>Recursos</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>🎵 Pistas Musicales</h3>
+                    <p>Accede a pistas de acompañamiento</p>
+                    <a href="acordes.html" class="btn">Explorar</a>
+                </div>
+                <div class="card">
+                    <h3>📅 Calendario</h3>
+                    <p>Consulta nuestro calendario de eventos</p>
+                    <a href="calendario.html" class="btn">Ver Agenda</a>
+                </div>
+                <div class="card">
+                    <h4>▶️ Youtube</h4>
+                    <p>Aqui puedes escuchar y ver las músicas </p>
+                    <a href="youtube.html" class="btn">Ver Videos</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="notificaciones" class="section" style="display: none;">
+            <h2>🔔 Notificaciones</h2>
+            <div id="notificationsList" class="notifications-grid"></div>
+        </section>
+
+        <div id="accesoRestringido" class="section">
+            <h2>Acceso Restringido</h2>
+            <p>Ingresa la contraseña para ver las notificaciones:</p>
+            <input type="password" id="passwordInput" placeholder="Contraseña">
+            <button id="verificarBtn" class="btn">Verificar</button>
+            <p id="mensajeError" style="color: red; display: none;">Contraseña incorrecta.</p>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 Ministerio de Alabanza</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzaVXrTVGbtqtQ3OUkjBFsFnVr0MaJUnhATf2q_0QNBxZ-4MCun-F58ri6o62kJrNmCTQ/exec";
+
+        document.getElementById('verificarBtn').addEventListener('click', () => {
+            const contrasenaIngresada = document.getElementById('passwordInput').value;
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'agenda',
+                    password: contrasenaIngresada
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('mensajeError').style.display = 'block';
+                } else {
+                    document.getElementById('notificaciones').style.display = 'block';
+                    document.getElementById('accesoRestringido').style.display = 'none';
+                    mostrarEventos(data.agenda);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('mensajeError').style.display = 'block';
+            });
+        });
+
+        function mostrarEventos(eventos) {
+            const contenedor = document.getElementById('notificationsList');
+            let html = '';
+
+            if (eventos.length === 0) {
+                html = `<p>No hay eventos próximos.</p>`;
+            } else {
+                eventos.forEach(evento => {
+                    html += `
+                        <div class="notification-card">
+                            <h3>${evento.Evento}</h3>
+                            <p><strong>Fecha:</strong> ${evento.Fecha}</p>
+                            <p><strong>Canciones:</strong> ${evento.Canciones}</p>
+                            <p><strong>Encargados:</strong> ${evento.Encargados}</p>
+                            ${evento.Notas ? `<p><strong>Notas:</strong> ${evento.Notas}</p>` : ''}
+                            <button class="btn whatsapp-btn" data-evento='${JSON.stringify(evento)}'>📲 Enviar Recordatorio</button>
+                        </div>
+                    `;
+                });
+            }
+
+            contenedor.innerHTML = html;
+
+            // Agregar evento a los botones de WhatsApp
+            document.querySelectorAll('.whatsapp-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const evento = JSON.parse(btn.dataset.evento);
+                    const mensaje = `Recordatorio: ${evento.Evento}\nFecha: ${evento.Fecha}\nCanciones: ${evento.Canciones}\nEncargados: ${evento.Encargados}\nNotas: ${evento.Notas || "Ninguna"}`;
+                    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+                    window.open(url, '_blank');
+                });
+            });
+        }
+    </script>
+</body>
+</html>

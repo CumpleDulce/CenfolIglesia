@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partituras de Alabanza</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Ministerio de Alabanza</h1>
+            <p>Iglesia Cenfol</p>
+        </div>
+    </header>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html">Inicio</a>
+            <a href="acordes.html">Acordes</a>
+            <a href="#recursos">Recursos</a>
+            <a href="#contacto">Contacto</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Sección de Partituras -->
+        <section id="partituras" class="section">
+            <h2>Partituras Disponibles</h2>
+            <input type="text" class="search-box" placeholder="Buscar por nombre..." id="buscar">
+            <div id="lista" class="pdf-list"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 Ministerio de Alabanza</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzaVXrTVGbtqtQ3OUkjBFsFnVr0MaJUnhATf2q_0QNBxZ-4MCun-F58ri6o62kJrNmCTQ/exec";
+
+fetch(API_URL)
+    .then(response => response.json())
+    .then(data => {
+        const canciones = data.canciones; // Usar el array "canciones"
+        let html = "";
+        canciones.forEach(cancion => {
+            html += `
+                <div class="pdf-item">
+                    <h3>${cancion.Nombre}</h3>
+                    <div class="buttons">
+                        <a href="${cancion.Enlace}" target="_blank" class="btn">Descargar</a>
+                        <button class="btn btn-letras" data-letra="${cancion.Letra}">Letras</button>
+                    </div>
+                    <div class="letra-container" style="display: none;">
+                        <pre>${cancion.Letra}</pre>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById("lista").innerHTML = html;
+
+        // Evento para mostrar/ocultar letras
+        document.querySelectorAll(".btn-letras").forEach(btn => {
+            btn.addEventListener("click", function() {
+                const letraContainer = this.closest(".pdf-item").querySelector(".letra-container");
+                letraContainer.style.display = letraContainer.style.display === "none" ? "block" : "none";
+            });
+        });
+    });
+
+// Buscador
+document.getElementById("buscar").addEventListener("input", function(e) {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll(".pdf-item").forEach(item => {
+        const nombre = item.querySelector("h3").textContent.toLowerCase();
+        item.style.display = nombre.includes(term) ? "block" : "none";
+    });
+});
+    </script>
+</body>
+</html>
